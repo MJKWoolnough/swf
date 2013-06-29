@@ -1272,11 +1272,11 @@ func max(sizes ...int32) int32 {
 	if len(sizes) == 0 {
 		return 0
 	}
-	min := sizes[0]
+	max := sizes[0]
 	for _, i := range sizes[1:] {
-		if i > min {
-			min = i
+		if i > max {
+			max = i
 		}
 	}
-	return min
+	return max
 }

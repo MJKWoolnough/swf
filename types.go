@@ -260,6 +260,11 @@ func (u *Uint64) String() string {
 
 type Float16 float32
 
+func NewFloat16(n float32) *Float16 {
+	a := Float16(n)
+	return &a
+}
+
 func (i *Float16) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -290,7 +295,16 @@ func (f *Float16) Size() int32 {
 	return 2
 }
 
+func (f *Float16) String() string {
+	return fmt.Sprintf("%f", *f)
+}
+
 type Float float32
+
+func NewFloat(n float32) *Float {
+	a := Float(n)
+	return &a
+}
 
 func (f *Float) ReadFrom(fr io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: fr}
@@ -310,7 +324,16 @@ func (f *Float) Size() int32 {
 	return 4
 }
 
+func (f *Float) String() string {
+	return fmt.Sprintf("%f", *f)
+}
+
 type Double float64
+
+func NewDouble(n float64) *Double {
+	a := Double(n)
+	return &a
+}
 
 func (d *Double) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -328,6 +351,10 @@ func (d *Double) WriteTo(w io.Writer) (total int64, err error) {
 
 func (d *Double) Size() int32 {
 	return 8
+}
+
+func (d *Double) String() string {
+	return fmt.Sprintf("%f", *d)
 }
 
 type BitReader interface {
@@ -416,6 +443,11 @@ func (b *bitWriter) Align() {
 
 type Twips int32
 
+func NewTwips(n int32) *Twips {
+	a := Twips(n)
+	return &a
+}
+
 func (t *Twips) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -446,6 +478,11 @@ func (t Twips) String() string {
 
 type Fixed float64
 
+func NewFixed(n float64) *Fixed {
+	a := Fixed(n)
+	return &a
+}
+
 func (i *Fixed) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -467,7 +504,16 @@ func (f *Fixed) Size() int32 {
 	return 4
 }
 
+func (f *Fixed) String() string {
+	return fmt.Sprintf("%f", *f)
+}
+
 type Fixed8 float32
+
+func NewFixed8(n float32) *Fixed8 {
+	a := Fixed8(n)
+	return &a
+}
 
 func (i *Fixed8) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -490,7 +536,16 @@ func (f *Fixed8) Size() int32 {
 	return 2
 }
 
+func (f *Fixed8) String() string {
+	return fmt.Sprintf("%f", *f)
+}
+
 type EncodedU32 uint32
+
+func NewEncodedU32(n float64) *EncodedU32 {
+	a := EncodedU32(n)
+	return &a
+}
 
 func (e *EncodedU32) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -540,7 +595,16 @@ func (e *EncodedU32) Size() int32 {
 	return i
 }
 
+func (e *EncodedU32) String() string {
+	return fmt.Sprintf("%d", *e)
+}
+
 type BitUint uint32
+
+func NewBitUint(n uint32) *BitUint {
+	a := BitUint(n)
+	return &a
+}
 
 func (b *BitUint) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	*b = 0
@@ -577,7 +641,16 @@ func (b *BitUint) Size() int32 {
 	return 1
 }
 
+func (b *BitUint) String() string {
+	return fmt.Sprintf("%d", *b)
+}
+
 type BitInt int32
+
+func NewBitInt(n uint32) *BitInt {
+	a := BitInt(n)
+	return &a
+}
 
 func (b *BitInt) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	*b = 0
@@ -621,7 +694,16 @@ func (b *BitInt) Size() int32 {
 	return 1
 }
 
+func (b *BitInt) String() string {
+	return fmt.Sprintf("%d", *b)
+}
+
 type BitFixed float64
+
+func NewBitFixed(n float64) *BitFixed {
+	a := BitFixed(n)
+	return &a
+}
 
 func (b *BitFixed) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	var bI BitInt
@@ -652,7 +734,16 @@ func (b *BitFixed) Size() int32 {
 	return 1
 }
 
+func (b *BitFixed) String() string {
+	return fmt.Sprintf("%f", *b)
+}
+
 type String string
+
+func NewString(s string) *String {
+	a := String(s)
+	return &a
+}
 
 func (s *String) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -688,7 +779,16 @@ func (s *String) Size() int32 {
 	return int32(len(*s)) + 1
 }
 
+func (s *String) String() string {
+	return string(*s)
+}
+
 type LanguageCode uint8
+
+func NewLanguageCode(n uint32) *LanguageCode {
+	a := LanguageCode(n)
+	return &a
+}
 
 func (l *LanguageCode) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -708,8 +808,16 @@ func (l *LanguageCode) Size() int32 {
 	return 1
 }
 
+func (l *LanguageCode) String() string {
+	return fmt.Sprintf("%d", *l)
+}
+
 type RGB struct {
 	Red, Green, Blue uint8
+}
+
+func NewRGB(r, g, b uint8) *RGB {
+	return &RGB{ r, g, b }
 }
 
 func (r *RGB) ReadFrom(f io.Reader) (total int64, err error) {
@@ -730,9 +838,17 @@ func (r *RGB) Size() int32 {
 	return 3
 }
 
+func (r *RGB) String() string {
+	return fmt.Sprintf("Red: %d, Green: %d, Blue: %d", r.Red, r.Green, r.Blue)
+}
+
 type RGBA struct {
 	RGB
 	Alpha uint8
+}
+
+func NewRGBA(r, g, b, a uint8) *RGBA {
+	return &RGBA { RGB{ r, g, b }, a }
 }
 
 func (r *RGBA) ReadFrom(f io.Reader) (total int64, err error) {
@@ -753,9 +869,17 @@ func (r *RGBA) Size() int32 {
 	return 4
 }
 
+func (r *RGBA) String() string {
+	return fmt.Sprintf("%s, Alpha: %d", r.RGB, r.Alpha)
+}
+
 type ARGB struct {
 	Alpha uint8
 	RGB
+}
+
+func NewARGB(r, g, b, a uint8) *ARGB {
+	return &ARGB { a, RGB{ r, g, b } }
 }
 
 func (a *ARGB) ReadFrom(f io.Reader) (total int64, err error) {
@@ -776,8 +900,16 @@ func (a *ARGB) Size() int32 {
 	return 4
 }
 
+func (a *ARGB) String() string {
+	return fmt.Sprintf("Alpha: %d, %s", a.Alpha, a.RGB)
+}
+
 type Rect struct {
 	Xmin, Xmax, Ymin, Ymax Twips
+}
+
+func NewRect(Xmin, Xmax, Ymin, Ymax Twips) *Rect {
+	return &Rect { Xmin, Xmax, Ymin, Ymax }
 }
 
 func (r *Rect) ReadFrom(f io.Reader) (total int64, err error) {
@@ -844,9 +976,17 @@ func (r *Rect) Size() int32 {
 	return 5 + 4*max(r.Xmin.Size(), r.Xmax.Size(), r.Ymin.Size(), r.Ymax.Size())
 }
 
+func (r *Rect) String() string {
+	return fmt.Sprintf("(%s, %s), (%s, %s), (%s, %s), (%s, %s)", r.Xmin, r.Ymin, r.Xmax, r.Ymin, r.Xmax, r.Ymax, r.Xmin, r.Ymin)
+}
+
 type Matrix struct {
 	ScaleX, ScaleY, RotateSkew0, RotateSkew1 BitFixed
 	TranslateX, TranslateY                   Twips
+}
+
+func NewMatrix(ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32, TranslateX, TranslateY int32) *Matrix {
+	return &Matrix { BitFixed(ScaleX), BitFixed(ScaleY), BitFixed(RotateSkew0), BitFixed(RotateSkew1), Twips(TranslateX), Twips(TranslateY) }
 }
 
 func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
@@ -884,6 +1024,9 @@ func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 		if err = m.RotateSkew1.ReadBitsFrom(b, uint8(d)); err != nil {
 			return
 		}
+	} else {
+		m.RotateSkew0 = 1
+		m.RotateSkew1 = 1
 	}
 	if err = d.ReadBitsFrom(b, 1); err != nil {
 		return
@@ -926,7 +1069,7 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 			return
 		}
 	}
-	if m.RotateSkew0 != 0 || m.RotateSkew1 != 0 {
+	if m.RotateSkew0 != 1 || m.RotateSkew1 != 1 {
 		if err = One.WriteBitsTo(b, 1); err != nil {
 			return
 		}
@@ -978,8 +1121,16 @@ func (m *Matrix) Size() int32 {
 	return 1 + total/8
 }
 
+func (m *Matrix) String() string {
+	return fmt.Sprintf("MATRIX: [ [ %s, %s ], [ %s, %s ], [ %s, %s ] ]", m.ScaleX, m.RotateSkew0, m.RotateSkew1, m.ScaleY, m.TranslateX, m.TranslateY)
+}
+
 type CXForm struct {
 	RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm BitInt
+}
+
+func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int32) *CXForm {
+	return &CXForm { BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm) }
 }
 
 func (c *CXForm) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1097,9 +1248,38 @@ func (c *CXForm) Size() int32 {
 	return 1 + total/8
 }
 
+func (c *CXForm) String() string {
+	s := "R"
+	if c.RedMultTerm != 256 {
+		s += fmt.Sprintf(" * %d/256", c.RedMultTerm)
+	}
+	if c.RedAddTerm != 0 {
+		s += fmt.Sprintf(" + %d", c.RedAddTerm)
+	}
+	s += ", G"
+	if c.GreenMultTerm != 256 {
+		s += fmt.Sprintf(" * %d/256", c.GreenMultTerm)
+	}
+	if c.GreenAddTerm != 0 {
+		s += fmt.Sprintf(" + %d", c.GreenAddTerm)
+	}
+	s += ", B"
+	if c.BlueMultTerm != 256 {
+		s += fmt.Sprintf(" * %d/256", c.BlueMultTerm)
+	}
+	if c.BlueAddTerm != 0 {
+		s += fmt.Sprintf(" + %d", c.BlueAddTerm)
+	}
+	return s
+}
+
 type CXFormWithAlpha struct {
 	CXForm
 	AlphaMultTerm, AlphaAddTerm BitInt
+}
+
+func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int32) *CXFormWithAlpha {
+	return &CXFormWithAlpha { CXForm { BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm) }, BitInt(AlphaMultTerm), BitInt(AlphaAddTerm) }
 }
 
 func (c *CXFormWithAlpha) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1228,6 +1408,18 @@ func (c *CXFormWithAlpha) Size() int32 {
 		return total / 8
 	}
 	return 1 + total/8
+}
+
+func (c *CXFormWithAlpha) String() string {
+	s := c.CXForm.String()
+	s += ", A"
+	if c.AlphaMultTerm != 256 {
+		s += fmt.Sprintf(" * %d/256", c.AlphaMultTerm)
+	}
+	if c.AlphaAddTerm != 0 {
+		s += fmt.Sprintf(" + %d", c.AlphaAddTerm)
+	}
+	return s
 }
 
 func ReadAll(f io.Reader, fs []io.ReaderFrom) (err error) {

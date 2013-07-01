@@ -2,6 +2,7 @@ package swf
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/MJKWoolnough/rwcount"
 	"io"
@@ -613,11 +614,17 @@ func (e *EncodedU32) ReadFrom(f io.Reader) (total int64, err error) {
 	defer func() { total = c.BytesRead() }()
 	shift := EncodedU32(0)
 	b := []byte{255}
+	read := 0
 	for b[0]>>7 == 1 {
+		if read == 5 {
+			err = errors.New("encodedU32: malformed data")
+			return
+		}
 		_, err = c.Read(b)
 		if err != nil && err != io.EOF {
 			return
 		}
+		read++
 		*e |= EncodedU32(b[0]) << shift
 		shift += 7
 	}

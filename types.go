@@ -851,6 +851,14 @@ func (s *String) String() string {
 	return string(*s)
 }
 
+const (
+	LANGUAGE_LATIN LanguageCode = iota + 1
+	LANGUAGE_JAPENESE
+	LANGUAGE_KOREAN
+	LANGUAGE_SIMPLIFIED_CHINESE
+	LANGUAGE_TRADITIONAL_CHINESE
+)
+
 type LanguageCode uint8
 
 func NewLanguageCode(n uint32) *LanguageCode {
@@ -862,6 +870,9 @@ func (l *LanguageCode) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
 	err = binary.Read(c, binary.LittleEndian, l)
+	if *l == 0 || *l > 5 {
+		err = errors.New("languageCode: unknown id")
+	}
 	return
 }
 
@@ -877,7 +888,19 @@ func (l *LanguageCode) Size() int32 {
 }
 
 func (l *LanguageCode) String() string {
-	return fmt.Sprintf("%d", *l)
+	switch *l {
+	case LANGUAGE_LATIN:
+		return "Latin"
+	case LANGUAGE_JAPENESE:
+		return "Japenese"
+	case LANGUAGE_KOREAN:
+		return "Korean"
+	case LANGUAGE_SIMPLIFIED_CHINESE:
+		return "Simplified Chinese"
+	case LANGUAGE_TRADITIONAL_CHINESE:
+		return "Traditional Chinese"
+	}
+	return "Unknown language code"
 }
 
 type RGB struct {

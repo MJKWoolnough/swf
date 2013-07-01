@@ -938,7 +938,7 @@ func (r *RGBA) Size() int32 {
 }
 
 func (r *RGBA) String() string {
-	return fmt.Sprintf("%s, Alpha: %d", r.RGB, r.Alpha)
+	return fmt.Sprintf("%s, Alpha: %d", r.RGB.String(), r.Alpha)
 }
 
 type ARGB struct {
@@ -969,7 +969,7 @@ func (a *ARGB) Size() int32 {
 }
 
 func (a *ARGB) String() string {
-	return fmt.Sprintf("Alpha: %d, %s", a.Alpha, a.RGB)
+	return fmt.Sprintf("Alpha: %d, %s", a.Alpha, a.RGB.String())
 }
 
 type Rect struct {

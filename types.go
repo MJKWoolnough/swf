@@ -946,7 +946,7 @@ type ARGB struct {
 	RGB
 }
 
-func NewARGB(r, g, b, a uint8) *ARGB {
+func NewARGB(a, r, g, b uint8) *ARGB {
 	return &ARGB{a, RGB{r, g, b}}
 }
 

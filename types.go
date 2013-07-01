@@ -861,7 +861,7 @@ const (
 
 type LanguageCode uint8
 
-func NewLanguageCode(n uint32) *LanguageCode {
+func NewLanguageCode(n uint8) *LanguageCode {
 	a := LanguageCode(n)
 	return &a
 }
@@ -877,6 +877,10 @@ func (l *LanguageCode) ReadFrom(f io.Reader) (total int64, err error) {
 }
 
 func (l *LanguageCode) WriteTo(f io.Writer) (total int64, err error) {
+	if *l == 0 || *l > 5 {
+		err = errors.New("languageCode: unknown id")
+		return
+	}
 	c := &rwcount.CountWriter{Writer: f}
 	defer func() { total = c.BytesWritten() }()
 	err = binary.Write(c, binary.LittleEndian, l)

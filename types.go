@@ -616,15 +616,15 @@ func (e *EncodedU32) ReadFrom(f io.Reader) (total int64, err error) {
 	b := []byte{255}
 	read := 0
 	for b[0]>>7 == 1 {
-		if read == 5 {
-			err = errors.New("encodedU32: malformed data")
-			return
-		}
 		_, err = c.Read(b)
 		if err != nil && err != io.EOF {
 			return
 		}
 		read++
+		if read == 5 && b[0] > 15 {
+			err = errors.New("encodedU32: malformed data")
+			return
+		}
 		*e |= EncodedU32(b[0]) << shift
 		shift += 7
 	}

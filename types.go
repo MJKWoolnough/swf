@@ -271,9 +271,35 @@ func (i *Float16) ReadFrom(f io.Reader) (total int64, err error) {
 	var d uint16
 	if err = binary.Read(c, binary.LittleEndian, &d); err == nil || err == io.EOF {
 		var bits uint32
-		bits = uint32(d>>15) << 31
-		bits |= uint32((d>>10)&31) << 23
-		bits |= uint32(d & 1023)
+		if d & 0x7FFF == 0 {
+			bits = uint32(d) << 16
+		} else {
+			sign := d & 0x8000
+			exponent := d & 0x7C00
+			mantissa := d & 0x03FF
+			if exponent == 0 {
+				var e uint32
+				mantissa <<= 1
+				for e = 0; mantissa & 0x400 == 0; e++ {
+					mantissa <<= 1
+				}
+				newSign := uint32(sign) << 16
+				newExponent := (uint32(exponent >> 10) - 15 + 127 - e) << 23
+				newMantissa := uint32(mantissa & 0x03FF) << 13
+				bits = newSign | newExponent | newMantissa
+			} else if exponent == 0x7C00 {
+				if mantissa == 0 {
+					bits = uint32(sign) << 16 | 0x7F800000 // +/- Inf
+				} else {
+					bits = 0xFFC00000 //NaN
+				}
+			} else {
+				newSign := uint32(sign) << 16
+				newExponent := uint32(exponent >> 10 - 15 + 127) << 23
+				newMantissa := uint32(mantissa) << 13
+				bits = newSign | newExponent | newMantissa
+			}
+		}
 		*i = Float16(math.Float32frombits(bits))
 	}
 	return
@@ -284,9 +310,44 @@ func (f *Float16) WriteTo(w io.Writer) (total int64, err error) {
 	defer func() { total = c.BytesWritten() }()
 	var d uint16
 	bits := math.Float32bits(float32(*f))
-	d = uint16(bits>>31) << 15
-	d |= uint16(d>>23) & 31 << 10
-	d |= uint16(d & 1023) //?
+	sign := bits & 0x80000000
+	exponent := bits & 0x7F800000
+	mantissa := bits & 0x007FFFFF
+	if exponent == 0 {
+		d = uint16(bits >> 16)
+	} else if exponent == 0x7F800000 {
+		if mantissa == 0 {
+			d = uint16((sign >> 16) | 0x7C00) // +/- Inf
+		} else {
+			d = 0xFE00 //NaN
+		}
+	} else {
+		d = uint16(sign >> 16)
+		unbiased := int32(exponent >> 23) -127 + 15
+		if unbiased > 31 {
+			d |= 0x7C00 // +/- inf
+		} else if unbiased <= 0 {
+			var newMantissa uint16
+			if unbiased < -10 { //14 - unbiased > 24
+				newMantissa = 0
+			} else {
+				mantissa |= 0x800000
+				newMantissa = uint16(mantissa >> uint32(14 - unbiased))
+				if mantissa >> uint32(13 - unbiased) & 1 == 1 {
+					newMantissa++
+				}
+			}
+			d |= newMantissa
+		} else {
+			newExponent := uint16(unbiased << 10)
+			newMantissa := uint16(mantissa >> 13)
+			d |= newExponent | newMantissa
+			if mantissa & 0x1000 > 1 {
+				d++
+			}
+		}
+		
+	}
 	err = binary.Write(c, binary.LittleEndian, d)
 	return
 }
@@ -296,7 +357,7 @@ func (f *Float16) Size() int32 {
 }
 
 func (f *Float16) String() string {
-	return fmt.Sprintf("%f", *f)
+	return fmt.Sprintf("%g", *f)
 }
 
 type Float float32
@@ -325,7 +386,7 @@ func (f *Float) Size() int32 {
 }
 
 func (f *Float) String() string {
-	return fmt.Sprintf("%f", *f)
+	return fmt.Sprintf("%g", *f)
 }
 
 type Double float64
@@ -354,7 +415,7 @@ func (d *Double) Size() int32 {
 }
 
 func (d *Double) String() string {
-	return fmt.Sprintf("%f", *d)
+	return fmt.Sprintf("%g", *d)
 }
 
 type BitReader interface {
@@ -817,7 +878,7 @@ type RGB struct {
 }
 
 func NewRGB(r, g, b uint8) *RGB {
-	return &RGB{ r, g, b }
+	return &RGB{r, g, b}
 }
 
 func (r *RGB) ReadFrom(f io.Reader) (total int64, err error) {
@@ -848,7 +909,7 @@ type RGBA struct {
 }
 
 func NewRGBA(r, g, b, a uint8) *RGBA {
-	return &RGBA { RGB{ r, g, b }, a }
+	return &RGBA{RGB{r, g, b}, a}
 }
 
 func (r *RGBA) ReadFrom(f io.Reader) (total int64, err error) {
@@ -879,7 +940,7 @@ type ARGB struct {
 }
 
 func NewARGB(r, g, b, a uint8) *ARGB {
-	return &ARGB { a, RGB{ r, g, b } }
+	return &ARGB{a, RGB{r, g, b}}
 }
 
 func (a *ARGB) ReadFrom(f io.Reader) (total int64, err error) {
@@ -909,7 +970,7 @@ type Rect struct {
 }
 
 func NewRect(Xmin, Xmax, Ymin, Ymax Twips) *Rect {
-	return &Rect { Xmin, Xmax, Ymin, Ymax }
+	return &Rect{Xmin, Xmax, Ymin, Ymax}
 }
 
 func (r *Rect) ReadFrom(f io.Reader) (total int64, err error) {
@@ -986,7 +1047,7 @@ type Matrix struct {
 }
 
 func NewMatrix(ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32, TranslateX, TranslateY int32) *Matrix {
-	return &Matrix { BitFixed(ScaleX), BitFixed(ScaleY), BitFixed(RotateSkew0), BitFixed(RotateSkew1), Twips(TranslateX), Twips(TranslateY) }
+	return &Matrix{BitFixed(ScaleX), BitFixed(ScaleY), BitFixed(RotateSkew0), BitFixed(RotateSkew1), Twips(TranslateX), Twips(TranslateY)}
 }
 
 func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1130,7 +1191,7 @@ type CXForm struct {
 }
 
 func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int32) *CXForm {
-	return &CXForm { BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm) }
+	return &CXForm{BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm)}
 }
 
 func (c *CXForm) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1279,7 +1340,7 @@ type CXFormWithAlpha struct {
 }
 
 func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int32) *CXFormWithAlpha {
-	return &CXFormWithAlpha { CXForm { BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm) }, BitInt(AlphaMultTerm), BitInt(AlphaAddTerm) }
+	return &CXFormWithAlpha{CXForm{BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm)}, BitInt(AlphaMultTerm), BitInt(AlphaAddTerm)}
 }
 
 func (c *CXFormWithAlpha) ReadFrom(f io.Reader) (total int64, err error) {

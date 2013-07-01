@@ -271,7 +271,7 @@ func (i *Float16) ReadFrom(f io.Reader) (total int64, err error) {
 	var d uint16
 	if err = binary.Read(c, binary.LittleEndian, &d); err == nil || err == io.EOF {
 		var bits uint32
-		if d & 0x7FFF == 0 {
+		if d&0x7FFF == 0 {
 			bits = uint32(d) << 16
 		} else {
 			sign := d & 0x8000
@@ -280,22 +280,22 @@ func (i *Float16) ReadFrom(f io.Reader) (total int64, err error) {
 			if exponent == 0 {
 				var e uint32
 				mantissa <<= 1
-				for e = 0; mantissa & 0x400 == 0; e++ {
+				for e = 0; mantissa&0x400 == 0; e++ {
 					mantissa <<= 1
 				}
 				newSign := uint32(sign) << 16
-				newExponent := (uint32(exponent >> 10) - 15 + 127 - e) << 23
-				newMantissa := uint32(mantissa & 0x03FF) << 13
+				newExponent := (uint32(exponent>>10) - 15 + 127 - e) << 23
+				newMantissa := uint32(mantissa&0x03FF) << 13
 				bits = newSign | newExponent | newMantissa
 			} else if exponent == 0x7C00 {
 				if mantissa == 0 {
-					bits = uint32(sign) << 16 | 0x7F800000 // +/- Inf
+					bits = uint32(sign)<<16 | 0x7F800000 // +/- Inf
 				} else {
 					bits = 0xFFC00000 //NaN
 				}
 			} else {
 				newSign := uint32(sign) << 16
-				newExponent := uint32(exponent >> 10 - 15 + 127) << 23
+				newExponent := uint32(exponent>>10-15+127) << 23
 				newMantissa := uint32(mantissa) << 13
 				bits = newSign | newExponent | newMantissa
 			}
@@ -323,7 +323,7 @@ func (f *Float16) WriteTo(w io.Writer) (total int64, err error) {
 		}
 	} else {
 		d = uint16(sign >> 16)
-		unbiased := int32(exponent >> 23) -127 + 15
+		unbiased := int32(exponent>>23) - 127 + 15
 		if unbiased > 31 {
 			d |= 0x7C00 // +/- inf
 		} else if unbiased <= 0 {
@@ -332,8 +332,8 @@ func (f *Float16) WriteTo(w io.Writer) (total int64, err error) {
 				newMantissa = 0
 			} else {
 				mantissa |= 0x800000
-				newMantissa = uint16(mantissa >> uint32(14 - unbiased))
-				if mantissa >> uint32(13 - unbiased) & 1 == 1 {
+				newMantissa = uint16(mantissa >> uint32(14-unbiased))
+				if mantissa>>uint32(13-unbiased)&1 == 1 {
 					newMantissa++
 				}
 			}
@@ -342,11 +342,11 @@ func (f *Float16) WriteTo(w io.Writer) (total int64, err error) {
 			newExponent := uint16(unbiased << 10)
 			newMantissa := uint16(mantissa >> 13)
 			d |= newExponent | newMantissa
-			if mantissa & 0x1000 > 1 {
+			if mantissa&0x1000 > 1 {
 				d++
 			}
 		}
-		
+
 	}
 	err = binary.Write(c, binary.LittleEndian, d)
 	return
@@ -547,7 +547,7 @@ func NewFixed(n float64) *Fixed {
 func (i *Fixed) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
-	var d int32
+	var d uint32
 	if err = binary.Read(c, binary.LittleEndian, &d); err == nil || err == io.EOF {
 		*i = Fixed(d) / 65536
 	}
@@ -557,7 +557,7 @@ func (i *Fixed) ReadFrom(f io.Reader) (total int64, err error) {
 func (f *Fixed) WriteTo(w io.Writer) (total int64, err error) {
 	c := &rwcount.CountWriter{Writer: w}
 	defer func() { total = c.BytesWritten() }()
-	err = binary.Write(c, binary.LittleEndian, int32(*f*65536))
+	err = binary.Write(c, binary.LittleEndian, uint32(*f*65536))
 	return
 }
 
@@ -579,7 +579,7 @@ func NewFixed8(n float32) *Fixed8 {
 func (i *Fixed8) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
-	var d int16
+	var d uint16
 	if err = binary.Read(c, binary.LittleEndian, &d); err == nil || err == io.EOF {
 		*i = Fixed8(d) / 256
 	}
@@ -589,7 +589,7 @@ func (i *Fixed8) ReadFrom(f io.Reader) (total int64, err error) {
 func (f *Fixed8) WriteTo(w io.Writer) (total int64, err error) {
 	c := &rwcount.CountWriter{Writer: w}
 	defer func() { total = c.BytesWritten() }()
-	err = binary.Write(c, binary.LittleEndian, int16(*f*256))
+	err = binary.Write(c, binary.LittleEndian, uint16(*f*256))
 	return
 }
 

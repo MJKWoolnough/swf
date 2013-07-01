@@ -640,14 +640,14 @@ func (e *EncodedU32) WriteTo(w io.Writer) (total int64, err error) {
 	for i := 0; i < 5; i++ {
 		data[i] = byte(f & 127)
 		f >>= 7
-		if data[i] != 0 {
+		if data[i] != 0 || i == 0 {
 			g = i
 		}
 	}
 	for i := 0; i < g; i++ {
 		data[i] |= 128
 	}
-	_, err = w.Write(data[:g])
+	_, err = c.Write(data[:g+1])
 	return
 }
 

@@ -481,25 +481,27 @@ func (b *bitWriter) Write(d []byte) (int, error) {
 func (b *bitWriter) WriteBits(bits []bool) (err error) {
 	for _, bit := range bits {
 		if bit {
-			b.data |= 1 << b.left
+			b.data |= 1 << (7 - b.left)
 		}
-		if b.left == 0 {
-			b.left = 7
+		if b.left == 7 {
+			b.left = 0
 			_, err = b.Writer.Write([]byte{b.data})
 			b.data = 0
 			if err != nil {
 				break
 			}
 		} else {
-			b.left--
+			b.left++
 		}
 	}
 	return
 }
 
 func (b *bitWriter) Align() {
-	b.left = 7
-	b.Writer.Write([]byte{b.data})
+	if b.left > 0 {
+		b.left = 0
+		b.Writer.Write([]byte{b.data})
+	}
 	b.data = 0
 }
 
@@ -690,10 +692,10 @@ func (b *BitUint) ReadBitsFrom(f BitReader, n uint8) (err error) {
 }
 
 func (b *BitUint) WriteBitsTo(f BitWriter, n uint8) (err error) {
-	data := make([]bool, 0, 32)
+	data := make([]bool, n)
 	c := uint32(*b)
 	for i := uint8(0); i < n; i++ {
-		data = append(data, c&1 == 1)
+		data[n-i-1] = c&1 == 1
 		c >>= 1
 	}
 	err = f.WriteBits(data)
@@ -742,10 +744,10 @@ func (b *BitInt) ReadBitsFrom(f BitReader, n uint8) (err error) {
 }
 
 func (b *BitInt) WriteBitsTo(f BitWriter, n uint8) (err error) {
-	data := make([]bool, 0, 32)
+	data := make([]bool, n)
 	c := uint32(*b)
 	for i := uint8(0); i < n; i++ {
-		data = append(data, c&1 == 1)
+		data[n-i-1] = c&1 == 1
 		c >>= 1
 	}
 	err = f.WriteBits(data)
@@ -781,10 +783,10 @@ func (b *BitFixed) ReadBitsFrom(f BitReader, n uint8) (err error) {
 }
 
 func (b *BitFixed) WriteBitsTo(f BitWriter, n uint8) (err error) {
-	data := make([]bool, 0, 32)
+	data := make([]bool, n)
 	c := uint32(*b * 65536)
 	for i := uint8(0); i < n; i++ {
-		data = append(data, c&1 == 1)
+		data[n-i-1] = c&1 == 1
 		c >>= 1
 	}
 	err = f.WriteBits(data)

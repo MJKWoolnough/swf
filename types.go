@@ -717,7 +717,7 @@ func (b *BitUint) String() string {
 
 type BitInt int32
 
-func NewBitInt(n uint32) *BitInt {
+func NewBitInt(n int32) *BitInt {
 	a := BitInt(n)
 	return &a
 }

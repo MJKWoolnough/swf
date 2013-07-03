@@ -724,17 +724,19 @@ func NewBitInt(n int32) *BitInt {
 
 func (b *BitInt) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	*b = 0
-	bits := make([]bool, n, n)
-	if err = f.ReadBits(bits); err != nil && err != io.EOF {
+	if n == 0 || n > 32 {
 		return
 	}
-	if bits[n-1] {
-		for i := n; i < 32; i++ {
-			*b <<= 1
-			*b++
+	bits := make([]bool, 32)
+	if err = f.ReadBits(bits[32-n:]); err != nil && err != io.EOF {
+		return
+	}
+	if bits[32-n] {
+		for i := uint8(0); i < 32-n; i++ {
+			bits[i] = true
 		}
 	}
-	for i := uint8(0); i < n; i++ {
+	for i := 0; i < 32; i++ {
 		*b <<= 1
 		if bits[i] {
 			*b++

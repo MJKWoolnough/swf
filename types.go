@@ -785,25 +785,14 @@ func (b *BitFixed) ReadBitsFrom(f BitReader, n uint8) (err error) {
 }
 
 func (b *BitFixed) WriteBitsTo(f BitWriter, n uint8) (err error) {
-	data := make([]bool, n)
-	c := uint32(*b * 65536)
-	for i := uint8(0); i < n; i++ {
-		data[n-i-1] = c&1 == 1
-		c >>= 1
-	}
-	err = f.WriteBits(data)
+	c := BitInt(*b * 65536)
+	err = c.WriteBitsTo(f, n)
 	return
 }
 
 func (b *BitFixed) Size() int32 {
-	j := uint32(*b * 65536)
-	k := j >> 31
-	for i := uint32(31); i > 0; i-- {
-		if j>>i&1 != k {
-			return int32(i) + 1
-		}
-	}
-	return 1
+	c := BitInt(*b * 65536)
+	return c.Size()
 }
 
 func (b *BitFixed) String() string {

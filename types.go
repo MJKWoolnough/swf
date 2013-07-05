@@ -1070,15 +1070,15 @@ func (r *Rect) Size() int32 {
 	biXmax := BitInt(r.Xmax)
 	biYmin := BitInt(r.Ymin)
 	biYmax := BitInt(r.Ymax)
-	total := (5 + 4 * max(biXmin.Size(), biXmax.Size(), biYmin.Size(), biYmax.Size()))
-	if total % 8 == 0 {
+	total := (5 + 4*max(biXmin.Size(), biXmax.Size(), biYmin.Size(), biYmax.Size()))
+	if total%8 == 0 {
 		return total / 8
 	}
-	return 1 + total / 8
+	return 1 + total/8
 }
 
 func (r *Rect) String() string {
-	return fmt.Sprintf("(%s, %s), (%s, %s), (%s, %s), (%s, %s)", r.Xmin, r.Ymin, r.Xmax, r.Ymin, r.Xmax, r.Ymax, r.Xmin, r.Ymin)
+	return fmt.Sprintf("(%s, %s), (%s, %s), (%s, %s), (%s, %s)", r.Xmin.String(), r.Ymin.String(), r.Xmax.String(), r.Ymin.String(), r.Xmax.String(), r.Ymax.String(), r.Xmin.String(), r.Ymin.String())
 }
 
 type Matrix struct {
@@ -1223,7 +1223,7 @@ func (m *Matrix) Size() int32 {
 }
 
 func (m *Matrix) String() string {
-	return fmt.Sprintf("MATRIX: [ [ %s, %s ], [ %s, %s ], [ %s, %s ] ]", m.ScaleX, m.RotateSkew0, m.RotateSkew1, m.ScaleY, m.TranslateX, m.TranslateY)
+	return fmt.Sprintf("MATRIX: [ [ %s, %s ], [ %s, %s ], [ %s, %s ] ]", m.ScaleX.String(), m.RotateSkew0.String(), m.RotateSkew1.String(), m.ScaleY.String(), m.TranslateX.String(), m.TranslateY.String())
 }
 
 type CXForm struct {

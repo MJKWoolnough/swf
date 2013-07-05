@@ -1066,7 +1066,15 @@ func (r *Rect) WriteTo(f io.Writer) (total int64, err error) {
 }
 
 func (r *Rect) Size() int32 {
-	return 5 + 4*max(r.Xmin.Size(), r.Xmax.Size(), r.Ymin.Size(), r.Ymax.Size())
+	biXmin := BitInt(r.Xmin)
+	biXmax := BitInt(r.Xmax)
+	biYmin := BitInt(r.Ymin)
+	biYmax := BitInt(r.Ymax)
+	total := (5 + 4 * max(biXmin.Size(), biXmax.Size(), biYmin.Size(), biYmax.Size()))
+	if total % 8 == 0 {
+		return total / 8
+	}
+	return 1 + total / 8
 }
 
 func (r *Rect) String() string {

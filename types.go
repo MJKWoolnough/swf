@@ -703,10 +703,13 @@ func (b *BitUint) WriteBitsTo(f BitWriter, n uint8) (err error) {
 }
 
 func (b *BitUint) Size() int32 {
-	for i := uint32(31); i > 0; i-- {
-		if *b>>i&1 == 1 {
-			return int32(i)
+	bd := uint32(*b)
+	pos := int32(32)
+	for bit := uint32(1) << 31; bit > 0; bit >>= 1 {
+		if bd&bit != 0 {
+			return pos
 		}
+		pos--
 	}
 	return 1
 }
@@ -757,11 +760,14 @@ func (b *BitInt) WriteBitsTo(f BitWriter, n uint8) (err error) {
 }
 
 func (b *BitInt) Size() int32 {
-	j := *b >> 31
-	for i := uint32(31); i > 0; i-- {
-		if *b>>i&1 != j {
-			return int32(i) + 1
+	bd := uint32(*b)
+	hb := (bd >> 31) == 0
+	pos := int32(32)
+	for bit := uint32(1) << 30; bit > 0; bit >>= 1 {
+		if (bd&bit == 0) != hb {
+			return pos
 		}
+		pos--
 	}
 	return 1
 }
@@ -1037,26 +1043,25 @@ func (r *Rect) WriteTo(f io.Writer) (total int64, err error) {
 	defer func() { total = c.BytesWritten() }()
 	b := &bitWriter{Writer: c}
 	defer b.Align()
-	nBits := uint8(max(r.Xmin.Size(), r.Xmax.Size(), r.Ymin.Size(), r.Ymax.Size()))
+	biXmin := BitInt(r.Xmin)
+	biXmax := BitInt(r.Xmax)
+	biYmin := BitInt(r.Ymin)
+	biYmax := BitInt(r.Ymax)
+	nBits := uint8(max(biXmin.Size(), biXmax.Size(), biYmin.Size(), biYmax.Size()))
 	bits := BitUint(nBits)
 	if err = bits.WriteBitsTo(b, 5); err != nil {
 		return
 	}
-	var t BitUint
-	t = BitUint(r.Xmin)
-	if err = t.WriteBitsTo(b, nBits); err != nil {
+	if err = biXmin.WriteBitsTo(b, nBits); err != nil {
 		return
 	}
-	t = BitUint(r.Xmax)
-	if err = t.WriteBitsTo(b, nBits); err != nil {
+	if err = biXmax.WriteBitsTo(b, nBits); err != nil {
 		return
 	}
-	t = BitUint(r.Ymin)
-	if err = t.WriteBitsTo(b, nBits); err != nil {
+	if err = biYmin.WriteBitsTo(b, nBits); err != nil {
 		return
 	}
-	t = BitUint(r.Ymax)
-	err = t.WriteBitsTo(b, nBits)
+	err = biYmax.WriteBitsTo(b, nBits)
 	return
 }
 

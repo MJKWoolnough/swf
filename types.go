@@ -1153,10 +1153,12 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 	b := &bitWriter{Writer: c}
 	defer b.Align()
 	var (
-		size, One BitUint
+		size BitUint
 	)
+	zero := BitUint(0)
+	one := BitUint(1)
 	if m.ScaleX != 1 || m.ScaleY != 1 {
-		if err = One.WriteBitsTo(b, 1); err != nil {
+		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		size = BitUint(max(m.ScaleX.Size(), m.ScaleY.Size()))
@@ -1169,9 +1171,13 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 		if err = m.ScaleY.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
+	} else {
+		if err = zero.WriteBitsTo(b, 1); err != nil {
+			return
+		}
 	}
 	if m.RotateSkew0 != 1 || m.RotateSkew1 != 1 {
-		if err = One.WriteBitsTo(b, 1); err != nil {
+		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		size = BitUint(max(m.RotateSkew0.Size(), m.RotateSkew1.Size()))
@@ -1184,9 +1190,13 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 		if err = m.RotateSkew1.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
+	} else {
+		if err = zero.WriteBitsTo(b, 1); err != nil {
+			return
+		}
 	}
 	if m.TranslateX != 0 || m.TranslateY != 0 {
-		if err = One.WriteBitsTo(b, 1); err != nil {
+		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		x, y := BitInt(m.TranslateX), BitInt(m.TranslateY)
@@ -1198,6 +1208,10 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 			return
 		}
 		if err = y.WriteBitsTo(b, uint8(size)); err != nil {
+			return
+		}
+	} else {
+		if err = zero.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 	}

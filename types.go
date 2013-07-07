@@ -1347,13 +1347,12 @@ func (c *CXForm) WriteTo(f io.Writer) (total int64, err error) {
 
 func (c *CXForm) Size() int32 {
 	var total, size, mult int32
+	total = 6
 	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 {
-		total += 1 + 4
 		mult = 3
 		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size())
 	}
 	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 {
-		total += 1 + 4
 		mult += 3
 		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size())
 	}
@@ -1468,7 +1467,7 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
-		size = max(size, c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size(), c.AlphaMultTerm.Size())
+		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size(), c.AlphaMultTerm.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}
@@ -1509,13 +1508,12 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 
 func (c *CXFormWithAlpha) Size() int32 {
 	var total, size, mult int32
+	total = 6
 	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 || c.AlphaAddTerm != 0 {
-		total += 1 + 4
 		mult = 4
 		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size(), c.AlphaAddTerm.Size())
 	}
 	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 || c.AlphaMultTerm != 256 {
-		total += 1 + 4
 		mult += 4
 		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size(), c.AlphaMultTerm.Size())
 	}

@@ -1467,6 +1467,7 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
+		hasMult = true
 		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size(), c.AlphaMultTerm.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return

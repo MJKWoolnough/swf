@@ -1311,7 +1311,8 @@ func (c *CXForm) WriteTo(f io.Writer) (total int64, err error) {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
-		size = max(size, c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size())
+		hasMult = true
+		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}

@@ -12,6 +12,7 @@ type Tester interface {
 	io.ReaderFrom
 	io.WriterTo
 	equaler.Equaler
+	Size() int32
 }
 
 type TesterBits interface {
@@ -39,13 +40,15 @@ func test(t *testing.T, target Tester, data []byte, units []equaler.Equaler) {
 	bufTo := new(bytes.Buffer)
 	var (
 		err    error
-		br, bw int64
+		br, bw, ts int64
 	)
 	for n, test := range units {
 		if br, err = target.ReadFrom(bufFrom); err != nil {
 			t.Errorf("test %d: %q", n+1, err)
 		} else if !target.Equal(test) {
 			t.Errorf("test %d: expecting %s, got %s", n+1, test, target)
+		} else if ts = int64(target.Size()); br != ts {
+			t.Errorf("test %d: expecting to read %d bytes, read %d bytes", ts, br)
 		} else if bw, err = target.WriteTo(bufTo); err != nil {
 			t.Errorf("test %d: %q", n+1, err)
 		} else if br != bw {
@@ -383,9 +386,9 @@ func TestCXForm(t *testing.T) {
 
 func TestCXFormSize(t *testing.T) {
 	testSize(t, []sizeTest{
-		{ NewCXForm(156, 247, 213, 197, 79, 108), 8 },
-		{ NewCXForm(195, 173, 154, 85, 159, 230), 8 },
-		{ NewCXForm(1, 3, 14, 2, 9, 30), 6 },
+		{NewCXForm(156, 247, 213, 197, 79, 108), 8},
+		{NewCXForm(195, 173, 154, 85, 159, 230), 8},
+		{NewCXForm(1, 3, 14, 2, 9, 30), 6},
 	})
 }
 
@@ -398,9 +401,9 @@ func TestCXFormWithAlpha(t *testing.T) {
 
 func TestCXFormWithAlphaSize(t *testing.T) {
 	testSize(t, []sizeTest{
-		{ NewCXFormWithAlpha(156, 247, 213, 128, 197, 79, 108, 154), 10 },
-		{ NewCXFormWithAlpha(195, 173, 154, 215, 85, 159, 230, 14), 10 },
-		{ NewCXFormWithAlpha(1, 3, 14, 5, 2, 9, 30, 14), 7 },
+		{NewCXFormWithAlpha(156, 247, 213, 128, 197, 79, 108, 154), 10},
+		{NewCXFormWithAlpha(195, 173, 154, 215, 85, 159, 230, 14), 10},
+		{NewCXFormWithAlpha(1, 3, 14, 5, 2, 9, 30, 14), 7},
 	})
 }
 

@@ -1,16 +1,16 @@
 // Copyright (c) 2013 - Michael Woolnough <michael.woolnough@gmail.com>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -1106,18 +1106,21 @@ func (r *Rect) String() string {
 }
 
 type Matrix struct {
-	ScaleX, ScaleY, RotateSkew0, RotateSkew1 BitFixed
+	ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32
 	TranslateX, TranslateY                   Twips
 }
 
 func NewMatrix(ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32, TranslateX, TranslateY int32) *Matrix {
-	return &Matrix{BitFixed(ScaleX), BitFixed(ScaleY), BitFixed(RotateSkew0), BitFixed(RotateSkew1), Twips(TranslateX), Twips(TranslateY)}
+	return &Matrix{ScaleX, ScaleY, RotateSkew0, RotateSkew1, Twips(TranslateX), Twips(TranslateY)}
 }
 
 func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
-	var d BitUint
+	var (
+		d BitUint
+		bf BitFixed
+	)
 	b := &bitReader{Reader: c}
 	if err = d.ReadBitsFrom(b, 1); err != nil {
 		return
@@ -1126,12 +1129,14 @@ func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 		if err = d.ReadBitsFrom(b, 5); err != nil {
 			return
 		}
-		if err = m.ScaleX.ReadBitsFrom(b, uint8(d)); err != nil {
+		if err = bf.ReadBitsFrom(b, uint8(d)); err != nil {
 			return
 		}
-		if err = m.ScaleY.ReadBitsFrom(b, uint8(d)); err != nil {
+		m.ScaleX = float32(bf)
+		if err = bf.ReadBitsFrom(b, uint8(d)); err != nil {
 			return
 		}
+		m.ScaleY = float32(bf)
 	} else {
 		m.ScaleX = 1
 		m.ScaleY = 1
@@ -1143,12 +1148,14 @@ func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 		if err = d.ReadBitsFrom(b, 5); err != nil {
 			return
 		}
-		if err = m.RotateSkew0.ReadBitsFrom(b, uint8(d)); err != nil {
+		if err = bf.ReadBitsFrom(b, uint8(d)); err != nil {
 			return
 		}
-		if err = m.RotateSkew1.ReadBitsFrom(b, uint8(d)); err != nil {
+		m.RotateSkew0 = float32(bf)
+		if err = bf.ReadBitsFrom(b, uint8(d)); err != nil {
 			return
 		}
+		m.RotateSkew1 = float32(bf)
 	} else {
 		m.RotateSkew0 = 1
 		m.RotateSkew1 = 1
@@ -1165,7 +1172,9 @@ func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 			return
 		}
 		m.TranslateX = Twips(sB)
-		err = sB.ReadBitsFrom(b, uint8(d))
+		if err = sB.ReadBitsFrom(b, uint8(d)); err != nil {
+			return
+		}
 		m.TranslateY = Twips(sB)
 	}
 	return
@@ -1176,48 +1185,45 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 	defer func() { total = c.BytesWritten() }()
 	b := &bitWriter{Writer: c}
 	defer b.Align()
-	var (
-		size BitUint
-	)
+	var size BitUint
 	zero := BitUint(0)
 	one := BitUint(1)
 	if m.ScaleX != 1 || m.ScaleY != 1 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
-		size = BitUint(max(m.ScaleX.Size(), m.ScaleY.Size()))
+		scaleX, scaleY := BitFixed(m.ScaleX), BitFixed(m.ScaleY)
+		size = BitUint(max(scaleX.Size(), scaleY.Size()))
 		if err = size.WriteBitsTo(b, 5); err != nil {
 			return
 		}
-		if err = m.ScaleX.WriteBitsTo(b, uint8(size)); err != nil {
+		
+		if err = scaleX.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = m.ScaleY.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = scaleY.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-	} else {
-		if err = zero.WriteBitsTo(b, 1); err != nil {
-			return
-		}
+	} else if err = zero.WriteBitsTo(b, 1); err != nil {
+		return
 	}
 	if m.RotateSkew0 != 1 || m.RotateSkew1 != 1 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
-		size = BitUint(max(m.RotateSkew0.Size(), m.RotateSkew1.Size()))
+		rotateSkew0, rotateSkew1 := BitFixed(m.RotateSkew0), BitFixed(m.RotateSkew1)
+		size = BitUint(max(rotateSkew0.Size(), rotateSkew1.Size()))
 		if err = size.WriteBitsTo(b, 5); err != nil {
 			return
 		}
-		if err = m.RotateSkew0.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = rotateSkew0.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = m.RotateSkew1.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = rotateSkew1.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-	} else {
-		if err = zero.WriteBitsTo(b, 1); err != nil {
-			return
-		}
+	} else if err = zero.WriteBitsTo(b, 1); err != nil {
+		return
 	}
 	if m.TranslateX != 0 || m.TranslateY != 0 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
@@ -1234,10 +1240,8 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 		if err = y.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-	} else {
-		if err = zero.WriteBitsTo(b, 1); err != nil {
-			return
-		}
+	} else if err = zero.WriteBitsTo(b, 1); err != nil {
+		return
 	}
 	return
 }
@@ -1245,10 +1249,12 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 func (m *Matrix) Size() int32 {
 	total := int32(0)
 	if m.ScaleX != 1 || m.ScaleY != 1 {
-		total += 1 + 5 + 2*max(m.ScaleX.Size(), m.ScaleY.Size())
+		scaleX, scaleY := BitFixed(m.ScaleX), BitFixed(m.ScaleY)
+		total += 1 + 5 + 2*max(scaleX.Size(), scaleY.Size())
 	}
 	if m.RotateSkew0 != 0 || m.RotateSkew1 != 0 {
-		total += 1 + 5 + 2*max(m.RotateSkew0.Size(), m.RotateSkew1.Size())
+		rotateSkew0, rotateSkew1 := BitFixed(m.RotateSkew0), BitFixed(m.RotateSkew1)
+		total += 1 + 5 + 2*max(rotateSkew0.Size(), rotateSkew1.Size())
 	}
 	if m.TranslateX != 0 || m.TranslateY != 0 {
 		x, y := BitInt(m.TranslateX), BitInt(m.TranslateY)
@@ -1261,15 +1267,15 @@ func (m *Matrix) Size() int32 {
 }
 
 func (m *Matrix) String() string {
-	return fmt.Sprintf("MATRIX: [ [ %s, %s ], [ %s, %s ], [ %s, %s ] ]", m.ScaleX.String(), m.RotateSkew0.String(), m.RotateSkew1.String(), m.ScaleY.String(), m.TranslateX.String(), m.TranslateY.String())
+	return fmt.Sprintf("MATRIX: [ [ %f, %f ], [ %f, %f ], [ %s, %s ] ]", m.ScaleX, m.RotateSkew0, m.RotateSkew1, m.ScaleY, m.TranslateX.String(), m.TranslateY.String())
 }
 
 type CXForm struct {
-	RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm BitInt
+	RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int16
 }
 
-func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int32) *CXForm {
-	return &CXForm{BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm)}
+func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int16) *CXForm {
+	return &CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}
 }
 
 func (c *CXForm) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1287,26 +1293,34 @@ func (c *CXForm) ReadFrom(f io.Reader) (total int64, err error) {
 	}
 	bits := uint8(n)
 	if m == 1 {
-		if err = c.RedMultTerm.ReadBitsFrom(b, bits); err != nil {
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.GreenMultTerm.ReadBitsFrom(b, bits); err != nil {
+		c.RedMultTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.BlueMultTerm.ReadBitsFrom(b, bits); err != nil && !(a == 0 && err == io.EOF) {
+		c.GreenMultTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil && !(a == 0 && err == io.EOF) {
 			return
 		}
+		c.BlueMultTerm = int16(n)
 	} else {
 		c.RedMultTerm, c.GreenMultTerm, c.BlueMultTerm = 256, 256, 256
 	}
 	if a == 1 {
-		if err = c.RedAddTerm.ReadBitsFrom(b, bits); err != nil {
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.GreenAddTerm.ReadBitsFrom(b, bits); err != nil {
+		c.RedAddTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		err = c.BlueAddTerm.ReadBitsFrom(b, bits)
+		c.GreenAddTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
+			return
+		}
+		c.BlueAddTerm = int16(n)
 	}
 	return
 }
@@ -1322,21 +1336,27 @@ func (c *CXForm) WriteTo(f io.Writer) (total int64, err error) {
 	)
 	one := BitUint(1)
 	zero := BitUint(0)
-	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 {
+	ra := BitInt(c.RedAddTerm)
+	ga := BitInt(c.GreenAddTerm)
+	ba := BitInt(c.BlueAddTerm)
+	rm := BitInt(c.RedMultTerm)
+	gm := BitInt(c.GreenMultTerm)
+	bm := BitInt(c.BlueMultTerm)
+	if ra != 0 || ga != 0 || ba != 0 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		hasAdd = true
-		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size())
+		size = max(ra.Size(), ga.Size(), ba.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}
-	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 {
+	if rm != 256 || gm != 256 || bm != 256 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		hasMult = true
-		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size())
+		size = max(size, rm.Size(), gm.Size(), bm.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}
@@ -1345,24 +1365,24 @@ func (c *CXForm) WriteTo(f io.Writer) (total int64, err error) {
 		return
 	}
 	if hasMult {
-		if err = c.RedMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = rm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.GreenMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = gm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.BlueMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = bm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
 	}
 	if hasAdd {
-		if err = c.RedAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ra.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.GreenAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ga.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.BlueAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ba.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
 	}
@@ -1372,13 +1392,19 @@ func (c *CXForm) WriteTo(f io.Writer) (total int64, err error) {
 func (c *CXForm) Size() int32 {
 	var total, size, mult int32
 	total = 6
-	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 {
+	ra := BitInt(c.RedAddTerm)
+	ga := BitInt(c.GreenAddTerm)
+	ba := BitInt(c.BlueAddTerm)
+	rm := BitInt(c.RedMultTerm)
+	gm := BitInt(c.GreenMultTerm)
+	bm := BitInt(c.BlueMultTerm)
+	if ra != 0 || ga != 0 || ba != 0 {
 		mult = 3
-		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size())
+		size = max(ra.Size(), ga.Size(), ba.Size())
 	}
-	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 {
+	if rm != 256 || gm != 256 || bm != 256 {
 		mult += 3
-		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size())
+		size = max(size, rm.Size(), gm.Size(), bm.Size())
 	}
 	total += mult * size
 	if total%8 == 0 {
@@ -1414,11 +1440,11 @@ func (c *CXForm) String() string {
 
 type CXFormWithAlpha struct {
 	CXForm
-	AlphaMultTerm, AlphaAddTerm BitInt
+	AlphaMultTerm, AlphaAddTerm int16
 }
 
-func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int32) *CXFormWithAlpha {
-	return &CXFormWithAlpha{CXForm{BitInt(RedMultTerm), BitInt(GreenMultTerm), BitInt(BlueMultTerm), BitInt(RedAddTerm), BitInt(GreenAddTerm), BitInt(BlueAddTerm)}, BitInt(AlphaMultTerm), BitInt(AlphaAddTerm)}
+func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int16) *CXFormWithAlpha {
+	return &CXFormWithAlpha{CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}, AlphaMultTerm, AlphaAddTerm}
 }
 
 func (c *CXFormWithAlpha) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1437,32 +1463,42 @@ func (c *CXFormWithAlpha) ReadFrom(f io.Reader) (total int64, err error) {
 	}
 	bits := uint8(n)
 	if m == 1 {
-		if err = c.RedMultTerm.ReadBitsFrom(b, bits); err != nil {
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.GreenMultTerm.ReadBitsFrom(b, bits); err != nil {
+		c.RedMultTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.BlueMultTerm.ReadBitsFrom(b, bits); err != nil {
+		c.GreenMultTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.AlphaMultTerm.ReadBitsFrom(b, bits); err != nil && !(a == 0 && err == io.EOF) {
+		c.BlueMultTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil && !(a == 0 && err == io.EOF) {
 			return
 		}
+		c.AlphaMultTerm = int16(n)
 	} else {
 		c.RedMultTerm, c.GreenMultTerm, c.BlueMultTerm, c.AlphaMultTerm = 256, 256, 256, 256
 	}
 	if a == 1 {
-		if err = c.RedAddTerm.ReadBitsFrom(b, bits); err != nil {
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.GreenAddTerm.ReadBitsFrom(b, bits); err != nil {
+		c.RedAddTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		if err = c.BlueAddTerm.ReadBitsFrom(b, bits); err != nil {
+		c.GreenAddTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
 			return
 		}
-		err = c.AlphaAddTerm.ReadBitsFrom(b, bits)
+		c.BlueAddTerm = int16(n)
+		if err = n.ReadBitsFrom(b, bits); err != nil {
+			return
+		}
+		c.AlphaAddTerm = int16(n)
 	}
 	return
 }
@@ -1478,21 +1514,29 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 	)
 	one := BitUint(1)
 	zero := BitUint(0)
-	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 || c.AlphaAddTerm != 0 {
+	ra := BitInt(c.RedAddTerm)
+	ga := BitInt(c.GreenAddTerm)
+	ba := BitInt(c.BlueAddTerm)
+	aa := BitInt(c.AlphaAddTerm)
+	rm := BitInt(c.RedMultTerm)
+	gm := BitInt(c.GreenMultTerm)
+	bm := BitInt(c.BlueMultTerm)
+	am := BitInt(c.AlphaMultTerm)
+	if ra != 0 || ga != 0 || ba != 0 || aa != 0 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		hasAdd = true
-		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size(), c.AlphaAddTerm.Size())
+		size = max(ra.Size(), ga.Size(), ba.Size(), aa.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}
-	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 || c.AlphaMultTerm != 256 {
+	if rm != 256 || ga != 256 || bm != 256 || am != 256 {
 		if err = one.WriteBitsTo(b, 1); err != nil {
 			return
 		}
 		hasMult = true
-		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size(), c.AlphaMultTerm.Size())
+		size = max(size, rm.Size(), gm.Size(), bm.Size(), am.Size())
 	} else if err = zero.WriteBitsTo(b, 1); err != nil {
 		return
 	}
@@ -1501,30 +1545,30 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 		return
 	}
 	if hasMult {
-		if err = c.RedMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = rm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.GreenMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = gm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.BlueMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = bm.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.AlphaMultTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = am.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
 	}
 	if hasAdd {
-		if err = c.RedAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ra.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.GreenAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ga.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.BlueAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = ba.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
-		if err = c.AlphaAddTerm.WriteBitsTo(b, uint8(size)); err != nil {
+		if err = aa.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
 	}
@@ -1534,13 +1578,21 @@ func (c *CXFormWithAlpha) WriteTo(f io.Writer) (total int64, err error) {
 func (c *CXFormWithAlpha) Size() int32 {
 	var total, size, mult int32
 	total = 6
-	if c.RedAddTerm != 0 || c.GreenAddTerm != 0 || c.BlueAddTerm != 0 || c.AlphaAddTerm != 0 {
+	ra := BitInt(c.RedAddTerm)
+	ga := BitInt(c.GreenAddTerm)
+	ba := BitInt(c.BlueAddTerm)
+	aa := BitInt(c.AlphaAddTerm)
+	rm := BitInt(c.RedMultTerm)
+	gm := BitInt(c.GreenMultTerm)
+	bm := BitInt(c.BlueMultTerm)
+	am := BitInt(c.AlphaMultTerm)
+	if ra != 0 || ga != 0 || ba != 0 || aa != 0 {
 		mult = 4
-		size = max(c.RedAddTerm.Size(), c.GreenAddTerm.Size(), c.BlueAddTerm.Size(), c.AlphaAddTerm.Size())
+		size = max(ra.Size(), ga.Size(), ba.Size(), aa.Size())
 	}
-	if c.RedMultTerm != 256 || c.GreenMultTerm != 256 || c.BlueMultTerm != 256 || c.AlphaMultTerm != 256 {
+	if rm != 256 || gm != 256 || bm != 256 || am != 256 {
 		mult += 4
-		size = max(size, c.RedMultTerm.Size(), c.GreenMultTerm.Size(), c.BlueMultTerm.Size(), c.AlphaMultTerm.Size())
+		size = max(size, rm.Size(), gm.Size(), bm.Size(), am.Size())
 	}
 	total += mult * size
 	if total%8 == 0 {

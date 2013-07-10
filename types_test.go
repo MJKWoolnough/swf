@@ -39,7 +39,7 @@ func test(t *testing.T, target Tester, data []byte, units []equaler.Equaler) {
 	bufFrom := bytes.NewBuffer(data)
 	bufTo := new(bytes.Buffer)
 	var (
-		err    error
+		err        error
 		br, bw, ts int64
 	)
 	for n, test := range units {
@@ -414,11 +414,21 @@ func (u *Uint8) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewUint8(n uint8) *Uint8 {
+	a := Uint8(n)
+	return &a
+}
+
 func (u *Uint16) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Uint16); ok && *eu == *u {
 		return true
 	}
 	return false
+}
+
+func NewUint16(n uint16) *Uint16 {
+	a := Uint16(n)
+	return &a
 }
 
 func (u *Uint32) Equal(e equaler.Equaler) bool {
@@ -428,11 +438,21 @@ func (u *Uint32) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewUint32(n uint32) *Uint32 {
+	a := Uint32(n)
+	return &a
+}
+
 func (u *Uint64) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Uint64); ok && *eu == *u {
 		return true
 	}
 	return false
+}
+
+func NewUint64(n uint64) *Uint64 {
+	a := Uint64(n)
+	return &a
 }
 
 func (i *Int8) Equal(e equaler.Equaler) bool {
@@ -442,11 +462,21 @@ func (i *Int8) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewInt8(n int8) *Int8 {
+	a := Int8(n)
+	return &a
+}
+
 func (i *Int16) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Int16); ok && *eu == *i {
 		return true
 	}
 	return false
+}
+
+func NewInt16(n int16) *Int16 {
+	a := Int16(n)
+	return &a
 }
 
 func (i *Int32) Equal(e equaler.Equaler) bool {
@@ -456,11 +486,21 @@ func (i *Int32) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewInt32(n int32) *Int32 {
+	a := Int32(n)
+	return &a
+}
+
 func (i *Int64) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Int64); ok && *eu == *i {
 		return true
 	}
 	return false
+}
+
+func NewInt64(n int64) *Int64 {
+	a := Int64(n)
+	return &a
 }
 
 func (f *Float16) Equal(e equaler.Equaler) bool {
@@ -470,11 +510,21 @@ func (f *Float16) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewFloat16(n float32) *Float16 {
+	a := Float16(n)
+	return &a
+}
+
 func (f *Float) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Float); ok && *eu == *f {
 		return true
 	}
 	return false
+}
+
+func NewFloat(n float32) *Float {
+	a := Float(n)
+	return &a
 }
 
 func (d *Double) Equal(e equaler.Equaler) bool {
@@ -484,11 +534,21 @@ func (d *Double) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewDouble(n float64) *Double {
+	a := Double(n)
+	return &a
+}
+
 func (t *Twips) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Twips); ok && *eu == *t {
 		return true
 	}
 	return false
+}
+
+func NewTwips(n int32) *Twips {
+	a := Twips(n)
+	return &a
 }
 
 func (f *Fixed) Equal(e equaler.Equaler) bool {
@@ -498,11 +558,21 @@ func (f *Fixed) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewFixed(n float64) *Fixed {
+	a := Fixed(n)
+	return &a
+}
+
 func (f *Fixed8) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Fixed8); ok && *eu == *f {
 		return true
 	}
 	return false
+}
+
+func NewFixed8(n float32) *Fixed8 {
+	a := Fixed8(n)
+	return &a
 }
 
 func (en *EncodedU32) Equal(e equaler.Equaler) bool {
@@ -512,11 +582,21 @@ func (en *EncodedU32) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewEncodedU32(n uint32) *EncodedU32 {
+	a := EncodedU32(n)
+	return &a
+}
+
 func (b *BitUint) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*BitUint); ok && *eu == *b {
 		return true
 	}
 	return false
+}
+
+func NewBitUint(n uint32) *BitUint {
+	a := BitUint(n)
+	return &a
 }
 
 func (b *BitInt) Equal(e equaler.Equaler) bool {
@@ -526,11 +606,21 @@ func (b *BitInt) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewBitInt(n int32) *BitInt {
+	a := BitInt(n)
+	return &a
+}
+
 func (b *BitFixed) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*BitFixed); ok && *eu == *b {
 		return true
 	}
 	return false
+}
+
+func NewBitFixed(n float64) *BitFixed {
+	a := BitFixed(n)
+	return &a
 }
 
 func (s *String) Equal(e equaler.Equaler) bool {
@@ -540,11 +630,21 @@ func (s *String) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewString(s string) *String {
+	a := String(s)
+	return &a
+}
+
 func (l *LanguageCode) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*LanguageCode); ok && *eu == *l {
 		return true
 	}
 	return false
+}
+
+func NewLanguageCode(n uint8) *LanguageCode {
+	a := LanguageCode(n)
+	return &a
 }
 
 func (r *RGB) Equal(e equaler.Equaler) bool {
@@ -554,11 +654,19 @@ func (r *RGB) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewRGB(r, g, b uint8) *RGB {
+	return &RGB{r, g, b}
+}
+
 func (r *RGBA) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*RGBA); ok && *eu == *r {
 		return eu.Red == r.Red && eu.Green == r.Green && eu.Blue == r.Blue && eu.Alpha == r.Alpha
 	}
 	return false
+}
+
+func NewRGBA(r, g, b, a uint8) *RGBA {
+	return &RGBA{RGB{r, g, b}, a}
 }
 
 func (a *ARGB) Equal(e equaler.Equaler) bool {
@@ -568,11 +676,19 @@ func (a *ARGB) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewARGB(a, r, g, b uint8) *ARGB {
+	return &ARGB{a, RGB{r, g, b}}
+}
+
 func (r *Rect) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*Rect); ok && *eu == *r {
 		return eu.Xmin == r.Xmin && eu.Xmax == r.Xmax && eu.Ymin == r.Ymin && eu.Ymax == r.Ymax
 	}
 	return false
+}
+
+func NewRect(Xmin, Xmax, Ymin, Ymax Twips) *Rect {
+	return &Rect{Xmin, Xmax, Ymin, Ymax}
 }
 
 func (m *Matrix) Equal(e equaler.Equaler) bool {
@@ -582,6 +698,10 @@ func (m *Matrix) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewMatrix(ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32, TranslateX, TranslateY int32) *Matrix {
+	return &Matrix{ScaleX, ScaleY, RotateSkew0, RotateSkew1, Twips(TranslateX), Twips(TranslateY)}
+}
+
 func (c *CXForm) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*CXForm); ok && *eu == *c {
 		return eu.RedMultTerm == c.RedMultTerm && eu.GreenMultTerm == c.GreenMultTerm && eu.BlueMultTerm == c.BlueMultTerm && eu.RedAddTerm == c.RedAddTerm && eu.GreenAddTerm == c.GreenAddTerm && eu.BlueAddTerm == c.BlueAddTerm
@@ -589,9 +709,17 @@ func (c *CXForm) Equal(e equaler.Equaler) bool {
 	return false
 }
 
+func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int16) *CXForm {
+	return &CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}
+}
+
 func (c *CXFormWithAlpha) Equal(e equaler.Equaler) bool {
 	if eu, ok := e.(*CXFormWithAlpha); ok && *eu == *c {
 		return eu.RedMultTerm == c.RedMultTerm && eu.GreenMultTerm == c.GreenMultTerm && eu.BlueMultTerm == c.BlueMultTerm && eu.AlphaMultTerm == c.AlphaMultTerm && eu.RedAddTerm == c.RedAddTerm && eu.GreenAddTerm == c.GreenAddTerm && eu.BlueAddTerm == c.BlueAddTerm && eu.AlphaAddTerm == c.AlphaAddTerm
 	}
 	return false
+}
+
+func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int16) *CXFormWithAlpha {
+	return &CXFormWithAlpha{CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}, AlphaMultTerm, AlphaAddTerm}
 }

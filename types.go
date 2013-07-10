@@ -53,11 +53,6 @@ type Sizer interface {
 
 type Int8 int8
 
-func NewInt8(n int8) *Int8 {
-	a := Int8(n)
-	return &a
-}
-
 func (i *Int8) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -81,11 +76,6 @@ func (i *Int8) String() string {
 }
 
 type Int16 int16
-
-func NewInt16(n int16) *Int16 {
-	a := Int16(n)
-	return &a
-}
 
 func (i *Int16) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -111,11 +101,6 @@ func (i *Int16) String() string {
 
 type Int32 int32
 
-func NewInt32(n int32) *Int32 {
-	a := Int32(n)
-	return &a
-}
-
 func (i *Int32) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -139,11 +124,6 @@ func (i *Int32) String() string {
 }
 
 type Int64 int64
-
-func NewInt64(n int64) *Int64 {
-	a := Int64(n)
-	return &a
-}
 
 func (i *Int64) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -169,11 +149,6 @@ func (i *Int64) String() string {
 
 type Uint8 uint8
 
-func NewUint8(n uint8) *Uint8 {
-	a := Uint8(n)
-	return &a
-}
-
 func (u *Uint8) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -197,11 +172,6 @@ func (u *Uint8) String() string {
 }
 
 type Uint16 uint16
-
-func NewUint16(n uint16) *Uint16 {
-	a := Uint16(n)
-	return &a
-}
 
 func (u *Uint16) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -227,11 +197,6 @@ func (u *Uint16) String() string {
 
 type Uint32 uint32
 
-func NewUint32(n uint32) *Uint32 {
-	a := Uint32(n)
-	return &a
-}
-
 func (u *Uint32) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -256,11 +221,6 @@ func (u *Uint32) String() string {
 
 type Uint64 uint64
 
-func NewUint64(n uint64) *Uint64 {
-	a := Uint64(n)
-	return &a
-}
-
 func (u *Uint64) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -284,11 +244,6 @@ func (u *Uint64) String() string {
 }
 
 type Float16 float32
-
-func NewFloat16(n float32) *Float16 {
-	a := Float16(n)
-	return &a
-}
 
 func (i *Float16) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -387,11 +342,6 @@ func (f *Float16) String() string {
 
 type Float float32
 
-func NewFloat(n float32) *Float {
-	a := Float(n)
-	return &a
-}
-
 func (f *Float) ReadFrom(fr io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: fr}
 	defer func() { total = c.BytesRead() }()
@@ -415,11 +365,6 @@ func (f *Float) String() string {
 }
 
 type Double float64
-
-func NewDouble(n float64) *Double {
-	a := Double(n)
-	return &a
-}
 
 func (d *Double) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -531,11 +476,6 @@ func (b *bitWriter) Align() {
 
 type Twips int32
 
-func NewTwips(n int32) *Twips {
-	a := Twips(n)
-	return &a
-}
-
 func (t *Twips) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -566,11 +506,6 @@ func (t Twips) String() string {
 
 type Fixed float64
 
-func NewFixed(n float64) *Fixed {
-	a := Fixed(n)
-	return &a
-}
-
 func (i *Fixed) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -598,11 +533,6 @@ func (f *Fixed) String() string {
 
 type Fixed8 float32
 
-func NewFixed8(n float32) *Fixed8 {
-	a := Fixed8(n)
-	return &a
-}
-
 func (i *Fixed8) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -629,11 +559,6 @@ func (f *Fixed8) String() string {
 }
 
 type EncodedU32 uint32
-
-func NewEncodedU32(n float64) *EncodedU32 {
-	a := EncodedU32(n)
-	return &a
-}
 
 func (e *EncodedU32) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -695,11 +620,6 @@ func (e *EncodedU32) String() string {
 
 type BitUint uint32
 
-func NewBitUint(n uint32) *BitUint {
-	a := BitUint(n)
-	return &a
-}
-
 func (b *BitUint) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	*b = 0
 	bits := make([]bool, n, n)
@@ -743,11 +663,6 @@ func (b *BitUint) String() string {
 }
 
 type BitInt int32
-
-func NewBitInt(n int32) *BitInt {
-	a := BitInt(n)
-	return &a
-}
 
 func (b *BitInt) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	*b = 0
@@ -802,11 +717,6 @@ func (b *BitInt) String() string {
 
 type BitFixed float64
 
-func NewBitFixed(n float64) *BitFixed {
-	a := BitFixed(n)
-	return &a
-}
-
 func (b *BitFixed) ReadBitsFrom(f BitReader, n uint8) (err error) {
 	var bI BitInt
 	err = bI.ReadBitsFrom(f, n)
@@ -830,11 +740,6 @@ func (b *BitFixed) String() string {
 }
 
 type String string
-
-func NewString(s string) *String {
-	a := String(s)
-	return &a
-}
 
 func (s *String) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
@@ -884,11 +789,6 @@ const (
 
 type LanguageCode uint8
 
-func NewLanguageCode(n uint8) *LanguageCode {
-	a := LanguageCode(n)
-	return &a
-}
-
 func (l *LanguageCode) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -934,10 +834,6 @@ type RGB struct {
 	Red, Green, Blue uint8
 }
 
-func NewRGB(r, g, b uint8) *RGB {
-	return &RGB{r, g, b}
-}
-
 func (r *RGB) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -963,10 +859,6 @@ func (r *RGB) String() string {
 type RGBA struct {
 	RGB
 	Alpha uint8
-}
-
-func NewRGBA(r, g, b, a uint8) *RGBA {
-	return &RGBA{RGB{r, g, b}, a}
 }
 
 func (r *RGBA) ReadFrom(f io.Reader) (total int64, err error) {
@@ -996,10 +888,6 @@ type ARGB struct {
 	RGB
 }
 
-func NewARGB(a, r, g, b uint8) *ARGB {
-	return &ARGB{a, RGB{r, g, b}}
-}
-
 func (a *ARGB) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
@@ -1024,10 +912,6 @@ func (a *ARGB) String() string {
 
 type Rect struct {
 	Xmin, Xmax, Ymin, Ymax Twips
-}
-
-func NewRect(Xmin, Xmax, Ymin, Ymax Twips) *Rect {
-	return &Rect{Xmin, Xmax, Ymin, Ymax}
 }
 
 func (r *Rect) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1110,15 +994,11 @@ type Matrix struct {
 	TranslateX, TranslateY                   Twips
 }
 
-func NewMatrix(ScaleX, ScaleY, RotateSkew0, RotateSkew1 float32, TranslateX, TranslateY int32) *Matrix {
-	return &Matrix{ScaleX, ScaleY, RotateSkew0, RotateSkew1, Twips(TranslateX), Twips(TranslateY)}
-}
-
 func (m *Matrix) ReadFrom(f io.Reader) (total int64, err error) {
 	c := &rwcount.CountReader{Reader: f}
 	defer func() { total = c.BytesRead() }()
 	var (
-		d BitUint
+		d  BitUint
 		bf BitFixed
 	)
 	b := &bitReader{Reader: c}
@@ -1197,7 +1077,7 @@ func (m *Matrix) WriteTo(f io.Writer) (total int64, err error) {
 		if err = size.WriteBitsTo(b, 5); err != nil {
 			return
 		}
-		
+
 		if err = scaleX.WriteBitsTo(b, uint8(size)); err != nil {
 			return
 		}
@@ -1272,10 +1152,6 @@ func (m *Matrix) String() string {
 
 type CXForm struct {
 	RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int16
-}
-
-func NewCXForm(RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm int16) *CXForm {
-	return &CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}
 }
 
 func (c *CXForm) ReadFrom(f io.Reader) (total int64, err error) {
@@ -1441,10 +1317,6 @@ func (c *CXForm) String() string {
 type CXFormWithAlpha struct {
 	CXForm
 	AlphaMultTerm, AlphaAddTerm int16
-}
-
-func NewCXFormWithAlpha(RedMultTerm, GreenMultTerm, BlueMultTerm, AlphaMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm, AlphaAddTerm int16) *CXFormWithAlpha {
-	return &CXFormWithAlpha{CXForm{RedMultTerm, GreenMultTerm, BlueMultTerm, RedAddTerm, GreenAddTerm, BlueAddTerm}, AlphaMultTerm, AlphaAddTerm}
 }
 
 func (c *CXFormWithAlpha) ReadFrom(f io.Reader) (total int64, err error) {

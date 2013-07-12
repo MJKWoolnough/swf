@@ -33,12 +33,19 @@ import (
 	"math"
 )
 
+type ReaderFrom interface {
+	ReadFrom(io.Reader, uint8, uint16) (int64, error)
+}
+
+type WriterTo interface {
+	WriteTo(io.Writer, uint8, uint16) (int64, error)
+}
+
 type Tag interface {
-	io.ReaderFrom
-	io.WriterTo
+	ReaderFrom
+	WriterTo
+	VSizer
 	MinVersion() uint8
-	Name() string
-	Size() int32
 	TagId() uint16
 }
 
@@ -49,6 +56,10 @@ type Upgradeable interface {
 
 type Sizer interface {
 	Size() int32
+}
+
+type VSizer interface {
+	Size(uint8, uint16)
 }
 
 type Int8 int8
@@ -1485,7 +1496,7 @@ func (c *CXFormWithAlpha) String() string {
 	return s
 }
 
-func ReadAll(f io.Reader, fs []io.ReaderFrom) (err error) {
+func ReadAll(f io.Reader, fs ...[]io.ReaderFrom) (err error) {
 	for _, r := range fs {
 		if _, err = r.ReadFrom(f); err != nil {
 			return
@@ -1494,7 +1505,7 @@ func ReadAll(f io.Reader, fs []io.ReaderFrom) (err error) {
 	return
 }
 
-func WriteAll(w io.Writer, fs []io.WriterTo) (err error) {
+func WriteAll(w io.Writer, fs ...[]io.WriterTo) (err error) {
 	for _, r := range fs {
 		if _, err = r.WriteTo(w); err != nil {
 			return
@@ -1503,7 +1514,7 @@ func WriteAll(w io.Writer, fs []io.WriterTo) (err error) {
 	return
 }
 
-func SizeAll(ss []Sizer) (total int32) {
+func SizeAll(ss ...[]Sizer) (total int32) {
 	for _, s := range ss {
 		total += s.Size()
 	}
